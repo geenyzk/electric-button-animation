@@ -385,62 +385,348 @@
         }
       }
       
+      // Create a distortion curve for thicker sound
+      function makeDistortionCurve(amount) {
+        const k = typeof amount === 'number' ? amount : 50;
+        const n_samples = 44100;
+        const curve = new Float32Array(n_samples);
+        const deg = Math.PI / 180;
+        for (let i = 0; i < n_samples; ++i) {
+          const x = (i * 2) / n_samples - 1;
+          curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+        }
+        return curve;
+      }
+      
       function playSound(type) {
         initAudio();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
+        const now = audioCtx.currentTime;
         
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
+        // Master gain for overall volume control
+        const masterGain = audioCtx.createGain();
+        masterGain.connect(audioCtx.destination);
+        
+        // Compressor for punch
+        const compressor = audioCtx.createDynamicsCompressor();
+        compressor.threshold.setValueAtTime(-24, now);
+        compressor.knee.setValueAtTime(30, now);
+        compressor.ratio.setValueAtTime(12, now);
+        compressor.attack.setValueAtTime(0.003, now);
+        compressor.release.setValueAtTime(0.25, now);
+        compressor.connect(masterGain);
         
         switch(type) {
-          case 'click':
-            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1);
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + 0.1);
+          case 'click': {
+            // Layer 1: Main click (mid freq)
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'square';
+            osc1.frequency.setValueAtTime(600, now);
+            osc1.frequency.exponentialRampToValueAtTime(150, now + 0.08);
+            gain1.gain.setValueAtTime(0.4, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+            osc1.connect(gain1);
+            gain1.connect(compressor);
+            osc1.start(now);
+            osc1.stop(now + 0.08);
+            
+            // Layer 2: Sub bass thump
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(80, now);
+            osc2.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+            gain2.gain.setValueAtTime(0.5, now);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc2.connect(gain2);
+            gain2.connect(compressor);
+            osc2.start(now);
+            osc2.stop(now + 0.1);
+            
+            // Layer 3: High click transient
+            const osc3 = audioCtx.createOscillator();
+            const gain3 = audioCtx.createGain();
+            osc3.type = 'triangle';
+            osc3.frequency.setValueAtTime(2000, now);
+            osc3.frequency.exponentialRampToValueAtTime(500, now + 0.03);
+            gain3.gain.setValueAtTime(0.2, now);
+            gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+            osc3.connect(gain3);
+            gain3.connect(compressor);
+            osc3.start(now);
+            osc3.stop(now + 0.03);
+            
+            masterGain.gain.setValueAtTime(0.6, now);
             break;
-          case 'powerOn':
-            oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.3);
-            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + 0.3);
+          }
+          
+          case 'powerOn': {
+            // Layer 1: Rising sweep
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            const distortion = audioCtx.createWaveShaper();
+            distortion.curve = makeDistortionCurve(20);
+            osc1.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(60, now);
+            osc1.frequency.exponentialRampToValueAtTime(400, now + 0.3);
+            osc1.frequency.exponentialRampToValueAtTime(300, now + 0.5);
+            gain1.gain.setValueAtTime(0.3, now);
+            gain1.gain.linearRampToValueAtTime(0.4, now + 0.15);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            osc1.connect(distortion);
+            distortion.connect(gain1);
+            gain1.connect(compressor);
+            osc1.start(now);
+            osc1.stop(now + 0.5);
+            
+            // Layer 2: Bass punch
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(50, now);
+            osc2.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+            gain2.gain.setValueAtTime(0.6, now);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            osc2.connect(gain2);
+            gain2.connect(compressor);
+            osc2.start(now);
+            osc2.stop(now + 0.4);
+            
+            // Layer 3: Electric crackle (noise-like)
+            const osc3 = audioCtx.createOscillator();
+            const gain3 = audioCtx.createGain();
+            osc3.type = 'square';
+            osc3.frequency.setValueAtTime(1200, now);
+            osc3.frequency.setValueAtTime(800, now + 0.05);
+            osc3.frequency.setValueAtTime(1500, now + 0.1);
+            osc3.frequency.setValueAtTime(600, now + 0.15);
+            gain3.gain.setValueAtTime(0.15, now);
+            gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc3.connect(gain3);
+            gain3.connect(compressor);
+            osc3.start(now);
+            osc3.stop(now + 0.2);
+            
+            // Layer 4: Harmonic shimmer
+            const osc4 = audioCtx.createOscillator();
+            const gain4 = audioCtx.createGain();
+            osc4.type = 'sine';
+            osc4.frequency.setValueAtTime(800, now + 0.1);
+            osc4.frequency.exponentialRampToValueAtTime(1200, now + 0.4);
+            gain4.gain.setValueAtTime(0, now);
+            gain4.gain.linearRampToValueAtTime(0.15, now + 0.2);
+            gain4.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            osc4.connect(gain4);
+            gain4.connect(compressor);
+            osc4.start(now);
+            osc4.stop(now + 0.5);
+            
+            masterGain.gain.setValueAtTime(0.7, now);
             break;
-          case 'powerOff':
-            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
-            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + 0.2);
+          }
+          
+          case 'powerOff': {
+            // Layer 1: Falling sweep
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(400, now);
+            osc1.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+            gain1.gain.setValueAtTime(0.35, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc1.connect(gain1);
+            gain1.connect(compressor);
+            osc1.start(now);
+            osc1.stop(now + 0.3);
+            
+            // Layer 2: Deep thud
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(100, now);
+            osc2.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+            gain2.gain.setValueAtTime(0.5, now);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+            osc2.connect(gain2);
+            gain2.connect(compressor);
+            osc2.start(now);
+            osc2.stop(now + 0.25);
+            
+            // Layer 3: Discharge crackle
+            const osc3 = audioCtx.createOscillator();
+            const gain3 = audioCtx.createGain();
+            osc3.type = 'square';
+            osc3.frequency.setValueAtTime(800, now);
+            osc3.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+            gain3.gain.setValueAtTime(0.12, now);
+            gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc3.connect(gain3);
+            gain3.connect(compressor);
+            osc3.start(now);
+            osc3.stop(now + 0.15);
+            
+            masterGain.gain.setValueAtTime(0.6, now);
             break;
-          case 'buzz':
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.setValueAtTime(60, audioCtx.currentTime);
-            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + 0.5);
+          }
+          
+          case 'buzz': {
+            // Layer 1: Main electrical hum
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            const distortion = audioCtx.createWaveShaper();
+            distortion.curve = makeDistortionCurve(50);
+            osc1.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(60, now);
+            gain1.gain.setValueAtTime(0.08, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+            osc1.connect(distortion);
+            distortion.connect(gain1);
+            gain1.connect(compressor);
+            osc1.start(now);
+            osc1.stop(now + 0.8);
+            
+            // Layer 2: Harmonic buzz
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'square';
+            osc2.frequency.setValueAtTime(120, now);
+            gain2.gain.setValueAtTime(0.04, now);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+            osc2.connect(gain2);
+            gain2.connect(compressor);
+            osc2.start(now);
+            osc2.stop(now + 0.8);
+            
+            // Layer 3: High frequency sizzle
+            const osc3 = audioCtx.createOscillator();
+            const gain3 = audioCtx.createGain();
+            osc3.type = 'sawtooth';
+            osc3.frequency.setValueAtTime(4000, now);
+            // Modulate for crackling effect
+            const lfo = audioCtx.createOscillator();
+            const lfoGain = audioCtx.createGain();
+            lfo.frequency.setValueAtTime(30, now);
+            lfoGain.gain.setValueAtTime(2000, now);
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc3.frequency);
+            lfo.start(now);
+            lfo.stop(now + 0.8);
+            gain3.gain.setValueAtTime(0.02, now);
+            gain3.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc3.connect(gain3);
+            gain3.connect(compressor);
+            osc3.start(now);
+            osc3.stop(now + 0.8);
+            
+            masterGain.gain.setValueAtTime(0.5, now);
             break;
-          case 'charge':
-            oscillator.frequency.setValueAtTime(100, audioCtx.currentTime);
-            oscillator.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 2);
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            oscillator.start(audioCtx.currentTime);
-            return { oscillator, gainNode }; // Return for stopping later
-          case 'achievement':
-            oscillator.frequency.setValueAtTime(523, audioCtx.currentTime);
-            oscillator.frequency.setValueAtTime(659, audioCtx.currentTime + 0.1);
-            oscillator.frequency.setValueAtTime(784, audioCtx.currentTime + 0.2);
-            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-            oscillator.start(audioCtx.currentTime);
-            oscillator.stop(audioCtx.currentTime + 0.4);
+          }
+          
+          case 'charge': {
+            // Layer 1: Rising tone
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            const distortion = audioCtx.createWaveShaper();
+            distortion.curve = makeDistortionCurve(30);
+            osc1.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(80, now);
+            osc1.frequency.linearRampToValueAtTime(800, now + 2);
+            gain1.gain.setValueAtTime(0.15, now);
+            osc1.connect(distortion);
+            distortion.connect(gain1);
+            gain1.connect(compressor);
+            osc1.start(now);
+            
+            // Layer 2: Sub bass rumble
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(40, now);
+            osc2.frequency.linearRampToValueAtTime(80, now + 2);
+            gain2.gain.setValueAtTime(0.25, now);
+            osc2.connect(gain2);
+            gain2.connect(compressor);
+            osc2.start(now);
+            
+            // Layer 3: Electric crackle
+            const osc3 = audioCtx.createOscillator();
+            const gain3 = audioCtx.createGain();
+            osc3.type = 'square';
+            osc3.frequency.setValueAtTime(2000, now);
+            const lfo = audioCtx.createOscillator();
+            const lfoGain = audioCtx.createGain();
+            lfo.frequency.setValueAtTime(15, now);
+            lfo.frequency.linearRampToValueAtTime(50, now + 2);
+            lfoGain.gain.setValueAtTime(1500, now);
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc3.frequency);
+            lfo.start(now);
+            gain3.gain.setValueAtTime(0.03, now);
+            gain3.gain.linearRampToValueAtTime(0.08, now + 2);
+            osc3.connect(gain3);
+            gain3.connect(compressor);
+            osc3.start(now);
+            
+            masterGain.gain.setValueAtTime(0.5, now);
+            
+            return { 
+              oscillator: osc1, 
+              gainNode: gain1,
+              stop: () => {
+                osc1.stop();
+                osc2.stop();
+                osc3.stop();
+                lfo.stop();
+              }
+            };
+          }
+          
+          case 'achievement': {
+            // Layer 1: Triumphant chord progression
+            const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+            notes.forEach((freq, i) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, now + i * 0.08);
+              gain.gain.setValueAtTime(0, now);
+              gain.gain.linearRampToValueAtTime(0.25, now + i * 0.08);
+              gain.gain.setValueAtTime(0.25, now + i * 0.08 + 0.1);
+              gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+              osc.connect(gain);
+              gain.connect(compressor);
+              osc.start(now + i * 0.08);
+              osc.stop(now + 0.6);
+            });
+            
+            // Layer 2: Bass foundation
+            const bassOsc = audioCtx.createOscillator();
+            const bassGain = audioCtx.createGain();
+            bassOsc.type = 'sine';
+            bassOsc.frequency.setValueAtTime(130, now);
+            bassGain.gain.setValueAtTime(0.4, now);
+            bassGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            bassOsc.connect(bassGain);
+            bassGain.connect(compressor);
+            bassOsc.start(now);
+            bassOsc.stop(now + 0.5);
+            
+            // Layer 3: Shimmering high
+            const shimmer = audioCtx.createOscillator();
+            const shimmerGain = audioCtx.createGain();
+            shimmer.type = 'triangle';
+            shimmer.frequency.setValueAtTime(2093, now + 0.2);
+            shimmerGain.gain.setValueAtTime(0, now);
+            shimmerGain.gain.linearRampToValueAtTime(0.1, now + 0.25);
+            shimmerGain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            shimmer.connect(shimmerGain);
+            shimmerGain.connect(compressor);
+            shimmer.start(now + 0.2);
+            shimmer.stop(now + 0.6);
+            
+            masterGain.gain.setValueAtTime(0.6, now);
             break;
+          }
         }
       }
 
@@ -595,9 +881,8 @@
         isCharging = false;
         clearInterval(chargeInterval);
         
-        if (chargeSound) {
-          chargeSound.oscillator.stop();
-          chargeSound.gainNode.disconnect();
+        if (chargeSound && chargeSound.stop) {
+          chargeSound.stop();
         }
         
         chargeIndicator.classList.remove('active');

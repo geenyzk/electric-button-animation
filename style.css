@@ -59,6 +59,117 @@ body {
   --spark-color: #dd88ff;
 }
 
+/* Rainbow Gradient Theme */
+.button-container.theme-rainbow {
+  --filament: #ff000033;
+  --filament-grow: #ffffff;
+  --glow: #ff6b6b;
+  --glow-alt: #ffd93d;
+  --spark-color: #6bcb77;
+  animation: rainbowShift 5s linear infinite;
+}
+
+@keyframes rainbowShift {
+  0% { --glow: #ff6b6b; --spark-color: #ffd93d; }
+  20% { --glow: #ffd93d; --spark-color: #6bcb77; }
+  40% { --glow: #6bcb77; --spark-color: #4d96ff; }
+  60% { --glow: #4d96ff; --spark-color: #9b59b6; }
+  80% { --glow: #9b59b6; --spark-color: #ff6b6b; }
+  100% { --glow: #ff6b6b; --spark-color: #ffd93d; }
+}
+
+/* ===== SIZE VARIANTS ===== */
+.button-container.size-small .button {
+  width: 160px;
+  height: 45px;
+  transform: translate(-50%, -50%) scale(0.75);
+}
+
+.button-container.size-large .button {
+  width: 280px;
+  height: 78px;
+  transform: translate(-50%, -50%) scale(1.3);
+}
+
+/* ===== THEME PICKER UI ===== */
+.theme-picker {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 30px;
+  backdrop-filter: blur(10px);
+}
+
+.theme-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.theme-btn:hover {
+  transform: scale(1.15);
+  border-color: var(--glow, #ff9f70);
+}
+
+.theme-btn.active {
+  border-color: #fff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+/* ===== SIZE PICKER UI ===== */
+.size-picker {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 30px;
+  backdrop-filter: blur(10px);
+}
+
+.size-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.size-btn:hover {
+  transform: scale(1.15);
+  border-color: var(--glow, #ff9f70);
+}
+
+.size-btn.active {
+  border-color: #fff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .area {
   &:nth-child(1):hover ~ .button::before {
     transform: translate(0%, 0);
@@ -332,6 +443,206 @@ body {
 
 .button:active .ripple {
   animation: ripple 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== SOUND WAVE VISUALIZER ===== */
+.sound-waves {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  height: 30px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 5;
+}
+
+.wave-bar {
+  width: 3px;
+  height: 8px;
+  background: var(--glow);
+  border-radius: 2px;
+  transform-origin: center;
+}
+
+.button:hover .sound-waves,
+.button:focus .sound-waves {
+  opacity: 1;
+}
+
+.button:hover .wave-bar:nth-child(1),
+.button:focus .wave-bar:nth-child(1) {
+  animation: waveBar 0.4s ease-in-out infinite;
+  animation-delay: 0s;
+}
+.button:hover .wave-bar:nth-child(2),
+.button:focus .wave-bar:nth-child(2) {
+  animation: waveBar 0.4s ease-in-out infinite;
+  animation-delay: 0.1s;
+}
+.button:hover .wave-bar:nth-child(3),
+.button:focus .wave-bar:nth-child(3) {
+  animation: waveBar 0.4s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+.button:hover .wave-bar:nth-child(4),
+.button:focus .wave-bar:nth-child(4) {
+  animation: waveBar 0.4s ease-in-out infinite;
+  animation-delay: 0.15s;
+}
+.button:hover .wave-bar:nth-child(5),
+.button:focus .wave-bar:nth-child(5) {
+  animation: waveBar 0.4s ease-in-out infinite;
+  animation-delay: 0.05s;
+}
+
+/* ===== ELECTRIC ARC EFFECT ===== */
+.electric-arc {
+  position: absolute;
+  top: 50%;
+  left: 55px;
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--glow) 20%, 
+    var(--filament-grow) 50%, 
+    var(--glow) 80%, 
+    transparent 100%
+  );
+  transform: translateY(-50%);
+  opacity: 0;
+  filter: blur(1px);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.button:hover .electric-arc,
+.button:focus .electric-arc {
+  animation: electricZap 0.15s linear infinite;
+}
+
+/* ===== SMOKE/STEAM PARTICLES ===== */
+.smoke-particles {
+  position: absolute;
+  top: 0;
+  left: 60px;
+  width: 50px;
+  height: 60px;
+  pointer-events: none;
+  z-index: 6;
+  overflow: visible;
+}
+
+.smoke {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 70%);
+  border-radius: 50%;
+  opacity: 0;
+  bottom: 50%;
+  left: 50%;
+}
+
+.button:hover .smoke,
+.button:focus .smoke {
+  animation: smokeRise 2s ease-out infinite;
+}
+
+.smoke:nth-child(1) { animation-delay: 0s; left: 30%; }
+.smoke:nth-child(2) { animation-delay: 0.4s; left: 50%; }
+.smoke:nth-child(3) { animation-delay: 0.8s; left: 70%; }
+.smoke:nth-child(4) { animation-delay: 1.2s; left: 40%; }
+.smoke:nth-child(5) { animation-delay: 1.6s; left: 60%; }
+
+/* ===== GLITCH OVERLAY EFFECT ===== */
+.glitch-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 20;
+  mix-blend-mode: screen;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.03) 2px,
+    rgba(255, 255, 255, 0.03) 4px
+  );
+}
+
+.button:active .glitch-overlay {
+  animation: glitchEffect 0.3s linear;
+}
+
+/* ===== ENERGY CHARGING BAR ===== */
+.energy-bar {
+  position: absolute;
+  bottom: 0;
+  left: 65px;
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--glow), var(--filament-grow));
+  border-radius: 0 2px 2px 0;
+  z-index: 15;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 10px var(--glow);
+}
+
+.button:active .energy-bar {
+  animation: energyCharge 0.8s ease-out forwards;
+}
+
+/* ===== FLOATING ANIMATION ===== */
+.button {
+  animation: buttonEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             floatIdle 4s ease-in-out 0.8s infinite;
+}
+
+/* ===== 3D DEPTH EFFECT ===== */
+.button-container {
+  perspective: 1000px;
+}
+
+.button {
+  transform-style: preserve-3d;
+}
+
+.button:hover {
+  transform: translate(-50%, -50%) rotateX(5deg) rotateY(-2deg);
+  transition: transform 0.3s ease;
+}
+
+/* ===== BUTTON REFLECTION ===== */
+.button-reflection {
+  position: fixed;
+  top: calc(50% + 40px);
+  left: 50%;
+  width: 215px;
+  height: 60px;
+  transform: translate(-50%, 0) scaleY(-0.3) rotateX(180deg);
+  background: linear-gradient(to bottom, 
+    rgba(255, 159, 112, 0.2) 0%, 
+    transparent 100%
+  );
+  filter: blur(8px);
+  opacity: 0.4;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+}
+
+/* ===== NEON FLICKER EFFECT ===== */
+.button:focus .glow {
+  animation: neonFlicker 0.1s ease-in-out infinite alternate;
 }
 
 .base {
@@ -1309,4 +1620,177 @@ body {
 .text span,
 .lightning-marquee > div {
   will-change: transform, opacity;
+}
+
+/* ===== NEW EFFECT ANIMATIONS ===== */
+
+/* Sound wave bar animation */
+@keyframes waveBar {
+  0%, 100% {
+    height: 8px;
+  }
+  50% {
+    height: 25px;
+  }
+}
+
+/* Electric zap animation */
+@keyframes electricZap {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) scaleX(0.8);
+    filter: blur(1px);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-50%) scaleX(1) skewY(2deg);
+    filter: blur(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-50%) scaleX(0.9) skewY(-1deg);
+    filter: blur(2px);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(-50%) scaleX(1.1) skewY(1deg);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) scaleX(0.8);
+    filter: blur(1px);
+  }
+}
+
+/* Smoke rising animation */
+@keyframes smokeRise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 0.8;
+    transform: translateY(-10px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px) translateX(10px) scale(1.5);
+  }
+}
+
+/* Glitch effect animation */
+@keyframes glitchEffect {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  10% {
+    opacity: 1;
+    clip-path: inset(40% 0 30% 0);
+    transform: translate(-3px, 0);
+  }
+  20% {
+    clip-path: inset(10% 0 60% 0);
+    transform: translate(3px, 0);
+  }
+  30% {
+    clip-path: inset(70% 0 10% 0);
+    transform: translate(-2px, 0);
+  }
+  40% {
+    clip-path: inset(20% 0 50% 0);
+    transform: translate(2px, 0);
+  }
+  50% {
+    clip-path: inset(50% 0 20% 0);
+    transform: translate(-1px, 0);
+  }
+  60% {
+    clip-path: inset(30% 0 40% 0);
+    transform: translate(1px, 0);
+  }
+  70% {
+    clip-path: inset(60% 0 20% 0);
+    transform: translate(-2px, 0);
+  }
+  80% {
+    clip-path: inset(10% 0 70% 0);
+    transform: translate(2px, 0);
+  }
+  90% {
+    clip-path: inset(80% 0 5% 0);
+    transform: translate(-1px, 0);
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
+    transform: translate(0, 0);
+  }
+}
+
+/* Energy charging animation */
+@keyframes energyCharge {
+  0% {
+    width: 0;
+    opacity: 1;
+  }
+  80% {
+    width: 140px;
+    opacity: 1;
+  }
+  100% {
+    width: 150px;
+    opacity: 0;
+  }
+}
+
+/* Floating idle animation */
+@keyframes floatIdle {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-5px);
+  }
+}
+
+/* Neon flicker animation */
+@keyframes neonFlicker {
+  0%, 100% {
+    opacity: 1;
+    filter: blur(5px) brightness(1);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(6px) brightness(1.2);
+  }
+}
+
+/* Rainbow glow for rainbow theme */
+.button-container.theme-rainbow .button::before {
+  animation: pulseGlow 3s ease-in-out infinite, rainbowGlow 3s linear infinite;
+}
+
+@keyframes rainbowGlow {
+  0% { background-color: rgba(255, 107, 107, 0.5); }
+  20% { background-color: rgba(255, 217, 61, 0.5); }
+  40% { background-color: rgba(107, 203, 119, 0.5); }
+  60% { background-color: rgba(77, 150, 255, 0.5); }
+  80% { background-color: rgba(155, 89, 182, 0.5); }
+  100% { background-color: rgba(255, 107, 107, 0.5); }
+}
+
+/* Rainbow theme reflection update */
+.button-container.theme-rainbow ~ .button-reflection {
+  animation: rainbowReflection 3s linear infinite;
+}
+
+@keyframes rainbowReflection {
+  0% { background: linear-gradient(to bottom, rgba(255, 107, 107, 0.2), transparent); }
+  20% { background: linear-gradient(to bottom, rgba(255, 217, 61, 0.2), transparent); }
+  40% { background: linear-gradient(to bottom, rgba(107, 203, 119, 0.2), transparent); }
+  60% { background: linear-gradient(to bottom, rgba(77, 150, 255, 0.2), transparent); }
+  80% { background: linear-gradient(to bottom, rgba(155, 89, 182, 0.2), transparent); }
+  100% { background: linear-gradient(to bottom, rgba(255, 107, 107, 0.2), transparent); }
 }

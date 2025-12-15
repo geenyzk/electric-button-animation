@@ -7,8 +7,24 @@
     <title>Next Level Electric Button Animation | @coding.stella</title>
   </head>
   <body>
-    <!-- Try: theme-blue, theme-green, theme-purple, or remove for default orange -->
-    <div class="button-container theme-blue">
+    <!-- Theme Picker UI -->
+    <div class="theme-picker">
+      <button class="theme-btn theme-btn-orange active" data-theme="" title="Orange">🔥</button>
+      <button class="theme-btn theme-btn-blue" data-theme="theme-blue" title="Blue">💎</button>
+      <button class="theme-btn theme-btn-green" data-theme="theme-green" title="Green">🌿</button>
+      <button class="theme-btn theme-btn-purple" data-theme="theme-purple" title="Purple">🔮</button>
+      <button class="theme-btn theme-btn-rainbow" data-theme="theme-rainbow" title="Rainbow">🌈</button>
+    </div>
+
+    <!-- Size Picker UI -->
+    <div class="size-picker">
+      <button class="size-btn" data-size="size-small" title="Small">S</button>
+      <button class="size-btn active" data-size="" title="Medium">M</button>
+      <button class="size-btn" data-size="size-large" title="Large">L</button>
+    </div>
+
+    <!-- Try: theme-blue, theme-green, theme-purple, theme-rainbow -->
+    <div class="button-container" id="buttonContainer">
       <div class="area"></div>
       <div class="area"></div>
       <div class="area"></div>
@@ -26,6 +42,28 @@
       <div class="area"></div>
       <button class="button">
         <span class="ripple"></span>
+        <!-- Sound wave visualizer bars -->
+        <div class="sound-waves">
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+          <span class="wave-bar"></span>
+        </div>
+        <!-- Electric arc effect -->
+        <div class="electric-arc"></div>
+        <!-- Smoke/steam particles -->
+        <div class="smoke-particles">
+          <span class="smoke"></span>
+          <span class="smoke"></span>
+          <span class="smoke"></span>
+          <span class="smoke"></span>
+          <span class="smoke"></span>
+        </div>
+        <!-- Glitch overlay -->
+        <div class="glitch-overlay"></div>
+        <!-- Energy charging bar -->
+        <div class="energy-bar"></div>
         <div class="base"></div>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -285,5 +323,49 @@
         </svg>
       </div>
     </div>
+
+    <!-- Reflection element -->
+    <div class="button-reflection"></div>
+
+    <!-- JavaScript for theme/size switching -->
+    <script>
+      // Theme picker functionality
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const container = document.getElementById('buttonContainer');
+          // Remove all theme classes
+          container.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-rainbow');
+          // Add selected theme
+          const theme = btn.dataset.theme;
+          if (theme) container.classList.add(theme);
+          // Update active state
+          document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      // Size picker functionality
+      document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const container = document.getElementById('buttonContainer');
+          // Remove all size classes
+          container.classList.remove('size-small', 'size-large');
+          // Add selected size
+          const size = btn.dataset.size;
+          if (size) container.classList.add(size);
+          // Update active state
+          document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      // Click ripple positioning
+      document.querySelector('.button').addEventListener('click', function(e) {
+        const ripple = this.querySelector('.ripple');
+        const rect = this.getBoundingClientRect();
+        ripple.style.left = (e.clientX - rect.left) + 'px';
+        ripple.style.top = (e.clientY - rect.top) + 'px';
+      });
+    </script>
   </body>
 </html>

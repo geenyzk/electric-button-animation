@@ -16,15 +16,47 @@ body {
   overflow: hidden;
 }
 
+/* Color Theme Variations */
 .button-container {
+  /* Default Orange Theme */
   --filament: #8b451333;
   --filament-grow: #fdfdf9;
   --glow: #ff9f70;
+  --glow-alt: #ff9d00;
+  --spark-color: #ffdd88;
+  
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   position: relative;
   width: 100%;
   height: 100%;
+}
+
+/* Blue Electric Theme */
+.button-container.theme-blue {
+  --filament: #1a4a8033;
+  --filament-grow: #e0f4ff;
+  --glow: #4da6ff;
+  --glow-alt: #0088ff;
+  --spark-color: #88ddff;
+}
+
+/* Green Neon Theme */
+.button-container.theme-green {
+  --filament: #1a4a2033;
+  --filament-grow: #e0ffe0;
+  --glow: #4dff70;
+  --glow-alt: #00ff44;
+  --spark-color: #88ffaa;
+}
+
+/* Purple Plasma Theme */
+.button-container.theme-purple {
+  --filament: #4a1a8033;
+  --filament-grow: #f0e0ff;
+  --glow: #b44dff;
+  --glow-alt: #9900ff;
+  --spark-color: #dd88ff;
 }
 
 .area {
@@ -102,13 +134,14 @@ body {
   transform: translate(-50%, -50%);
   cursor: pointer;
   z-index: 2;
+  animation: buttonEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 
   &::before {
     content: "";
     position: absolute;
     width: 150px;
     height: 60px;
-    background-color: #ff9f7080;
+    background-color: color-mix(in srgb, var(--glow) 50%, transparent);
     filter: blur(50px);
     border-radius: 50px;
     top: 50%;
@@ -116,6 +149,32 @@ body {
     z-index: -4;
     transform: translateX(-50%);
     transition: all 0.3s ease-out;
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+
+  /* Spark particles effect */
+  &::after {
+    content: "";
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--spark-color);
+    border-radius: 50%;
+    top: 50%;
+    left: 70px;
+    opacity: 0;
+    box-shadow: 
+      10px -8px 0 var(--spark-color),
+      25px 5px 0 var(--spark-color),
+      40px -3px 0 var(--spark-color);
+    filter: blur(1px);
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  &:hover::after,
+  &:focus::after {
+    animation: sparkle 0.8s ease-in-out infinite;
   }
 
   &:hover,
@@ -257,6 +316,22 @@ body {
       }
     }
   }
+}
+
+/* Ripple effect element */
+.ripple {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.button:active .ripple {
+  animation: ripple 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .base {
@@ -1081,4 +1156,157 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ===== NEW ENHANCEMENT ANIMATIONS ===== */
+
+/* Button entrance animation */
+@keyframes buttonEntrance {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Pulsating glow effect for idle state */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(-50%) scale(1.1);
+  }
+}
+
+/* Spark particle animation */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1) translate(5px, -3px);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8) translate(-3px, 5px);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.2) translate(3px, 2px);
+  }
+}
+
+/* Click ripple effect */
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
+
+/* Electric arc zap effect */
+@keyframes electricArc {
+  0%, 100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+  10%, 30% {
+    opacity: 1;
+    transform: scaleX(1.1);
+  }
+  20% {
+    opacity: 0.5;
+    transform: scaleX(0.95);
+  }
+}
+
+/* ===== ACCESSIBILITY: Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .button {
+    animation: none;
+  }
+  
+  .button::before {
+    animation: none;
+  }
+  
+  .lightning-marquee > div {
+    animation: none;
+  }
+}
+
+/* ===== MOBILE/TOUCH SUPPORT ===== */
+@media (hover: none) and (pointer: coarse) {
+  .button {
+    /* Make button more touch-friendly */
+    min-height: 60px;
+    touch-action: manipulation;
+  }
+  
+  /* Show glow effect on touch/active state */
+  .button:active {
+    & .glow {
+      opacity: 1;
+      transition: all 0.2s ease-out;
+    }
+    
+    & .filament-glow path {
+      animation: drawLine 0.5s ease-in-out forwards;
+    }
+    
+    & .filament-glow stop[offset="0%"],
+    & .filament-glow stop[offset="100%"] {
+      animation: light-on 0.1s forwards;
+    }
+    
+    & .text > span {
+      animation: slide-scroll 0.3s calc(var(--i) * 0.02s) ease;
+    }
+  }
+  
+  /* Hide the hover areas on touch devices */
+  .area {
+    display: none;
+  }
+  
+  /* Center the button properly without the area grid */
+  .button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+.button,
+.button::before,
+.button::after,
+.glow,
+.filament-glow,
+.base,
+.text span,
+.lightning-marquee > div {
+  will-change: transform, opacity;
 }

@@ -7,6 +7,36 @@
     <title>Next Level Electric Button Animation | @coding.stella</title>
   </head>
   <body>
+    <!-- Matrix Rain Background Canvas -->
+    <canvas id="matrixCanvas" class="matrix-bg"></canvas>
+    
+    <!-- Scanlines Overlay -->
+    <div class="scanlines"></div>
+    
+    <!-- Cursor Trail Container -->
+    <div id="cursorTrail" class="cursor-trail"></div>
+
+    <!-- Dark/Light Mode Toggle -->
+    <button class="mode-toggle" id="modeToggle" title="Toggle Dark/Light Mode">
+      <span class="mode-icon">🌙</span>
+    </button>
+
+    <!-- Click Counter -->
+    <div class="click-counter" id="clickCounter">
+      <span class="counter-label">CLICKS</span>
+      <span class="counter-value" id="counterValue">0</span>
+      <div class="counter-progress" id="counterProgress"></div>
+    </div>
+
+    <!-- Achievement Popup -->
+    <div class="achievement" id="achievement">
+      <span class="achievement-icon">🏆</span>
+      <span class="achievement-text" id="achievementText">Achievement Unlocked!</span>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip">💡 Click me to power on!</div>
+
     <!-- Theme Picker UI -->
     <div class="theme-picker">
       <button class="theme-btn theme-btn-orange active" data-theme="" title="Orange">🔥</button>
@@ -14,6 +44,14 @@
       <button class="theme-btn theme-btn-green" data-theme="theme-green" title="Green">🌿</button>
       <button class="theme-btn theme-btn-purple" data-theme="theme-purple" title="Purple">🔮</button>
       <button class="theme-btn theme-btn-rainbow" data-theme="theme-rainbow" title="Rainbow">🌈</button>
+      <button class="theme-btn theme-btn-custom" id="customThemeBtn" title="Custom Color">🎨</button>
+    </div>
+
+    <!-- Custom Color Picker -->
+    <div class="color-picker-panel" id="colorPickerPanel">
+      <label>Glow Color: <input type="color" id="customGlow" value="#ff9f70"></label>
+      <label>Spark Color: <input type="color" id="customSpark" value="#ffdd88"></label>
+      <button id="applyCustomColor">Apply</button>
     </div>
 
     <!-- Size Picker UI -->
@@ -22,6 +60,12 @@
       <button class="size-btn active" data-size="" title="Medium">M</button>
       <button class="size-btn" data-size="size-large" title="Large">L</button>
     </div>
+
+    <!-- Confetti Container -->
+    <div id="confettiContainer" class="confetti-container"></div>
+
+    <!-- Lens Flare -->
+    <div class="lens-flare" id="lensFlare"></div>
 
     <!-- Try: theme-blue, theme-green, theme-purple, theme-rainbow -->
     <div class="button-container" id="buttonContainer">
@@ -40,8 +84,15 @@
       <div class="area"></div>
       <div class="area"></div>
       <div class="area"></div>
-      <button class="button">
+      <button class="button" id="mainButton">
         <span class="ripple"></span>
+        <!-- Charge indicator -->
+        <div class="charge-indicator" id="chargeIndicator">
+          <div class="charge-fill" id="chargeFill"></div>
+          <span class="charge-text" id="chargeText">0%</span>
+        </div>
+        <!-- Heat distortion overlay -->
+        <div class="heat-distortion"></div>
         <!-- Sound wave visualizer bars -->
         <div class="sound-waves">
           <span class="wave-bar"></span>
@@ -327,45 +378,512 @@
     <!-- Reflection element -->
     <div class="button-reflection"></div>
 
-    <!-- JavaScript for theme/size switching -->
+    <!-- JavaScript for all interactive features -->
     <script>
-      // Theme picker functionality
-      document.querySelectorAll('.theme-btn').forEach(btn => {
+      // ===== AUDIO CONTEXT FOR SOUND EFFECTS =====
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      let audioCtx = null;
+      
+      function initAudio() {
+        if (!audioCtx) {
+          audioCtx = new AudioContext();
+        }
+      }
+      
+      function playSound(type) {
+        initAudio();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        switch(type) {
+          case 'click':
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.1);
+            break;
+          case 'powerOn':
+            oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.3);
+            break;
+          case 'powerOff':
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.2);
+            break;
+          case 'buzz':
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(60, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+            break;
+          case 'charge':
+            oscillator.frequency.setValueAtTime(100, audioCtx.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 2);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            oscillator.start(audioCtx.currentTime);
+            return { oscillator, gainNode }; // Return for stopping later
+          case 'achievement':
+            oscillator.frequency.setValueAtTime(523, audioCtx.currentTime);
+            oscillator.frequency.setValueAtTime(659, audioCtx.currentTime + 0.1);
+            oscillator.frequency.setValueAtTime(784, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.4);
+            break;
+        }
+      }
+
+      // ===== STATE MANAGEMENT =====
+      let isOn = false;
+      let clickCount = parseInt(localStorage.getItem('clickCount') || '0');
+      let isCharging = false;
+      let chargeLevel = 0;
+      let chargeInterval = null;
+      let chargeSound = null;
+      const achievements = JSON.parse(localStorage.getItem('achievements') || '{}');
+
+      // ===== DOM ELEMENTS =====
+      const mainButton = document.getElementById('mainButton');
+      const container = document.getElementById('buttonContainer');
+      const counterValue = document.getElementById('counterValue');
+      const counterProgress = document.getElementById('counterProgress');
+      const tooltip = document.getElementById('tooltip');
+      const achievement = document.getElementById('achievement');
+      const achievementText = document.getElementById('achievementText');
+      const chargeIndicator = document.getElementById('chargeIndicator');
+      const chargeFill = document.getElementById('chargeFill');
+      const chargeText = document.getElementById('chargeText');
+      const lensFlare = document.getElementById('lensFlare');
+      const confettiContainer = document.getElementById('confettiContainer');
+      const matrixCanvas = document.getElementById('matrixCanvas');
+
+      // Initialize counter display
+      counterValue.textContent = clickCount;
+      updateCounterProgress();
+
+      // Hide tooltip if not first visit
+      if (localStorage.getItem('visited')) {
+        tooltip.style.display = 'none';
+      } else {
+        setTimeout(() => {
+          tooltip.classList.add('show');
+        }, 1000);
+      }
+
+      // ===== TOGGLE ON/OFF STATE =====
+      function toggleButton() {
+        isOn = !isOn;
+        container.classList.toggle('is-on', isOn);
+        
+        if (isOn) {
+          playSound('powerOn');
+          lensFlare.classList.add('active');
+          createConfetti();
+          setTimeout(() => playSound('buzz'), 300);
+        } else {
+          playSound('powerOff');
+          lensFlare.classList.remove('active');
+        }
+        
+        // Haptic feedback on mobile
+        if (navigator.vibrate) {
+          navigator.vibrate(isOn ? [50, 30, 50] : [30]);
+        }
+      }
+
+      // ===== CLICK COUNTER & ACHIEVEMENTS =====
+      function incrementCounter() {
+        clickCount++;
+        counterValue.textContent = clickCount;
+        localStorage.setItem('clickCount', clickCount);
+        updateCounterProgress();
+        checkAchievements();
+        
+        // Animate counter
+        counterValue.classList.add('pulse');
+        setTimeout(() => counterValue.classList.remove('pulse'), 200);
+      }
+
+      function updateCounterProgress() {
+        const progress = (clickCount % 100) / 100 * 100;
+        counterProgress.style.width = progress + '%';
+      }
+
+      function checkAchievements() {
+        const milestones = {
+          10: { text: 'First Steps! 10 clicks!', icon: '🎯' },
+          50: { text: 'Getting Warmed Up! 50 clicks!', icon: '🔥' },
+          100: { text: 'Century! 100 clicks!', icon: '💯' },
+          500: { text: 'Power User! 500 clicks!', icon: '⚡' },
+          1000: { text: 'LEGENDARY! 1000 clicks!', icon: '👑' }
+        };
+        
+        if (milestones[clickCount] && !achievements[clickCount]) {
+          achievements[clickCount] = true;
+          localStorage.setItem('achievements', JSON.stringify(achievements));
+          showAchievement(milestones[clickCount].text, milestones[clickCount].icon);
+        }
+      }
+
+      function showAchievement(text, icon = '🏆') {
+        playSound('achievement');
+        document.querySelector('.achievement-icon').textContent = icon;
+        achievementText.textContent = text;
+        achievement.classList.add('show');
+        
+        // Super confetti for achievements!
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => createConfetti(50), i * 200);
+        }
+        
+        setTimeout(() => {
+          achievement.classList.remove('show');
+        }, 3000);
+      }
+
+      // ===== CONFETTI EXPLOSION =====
+      function createConfetti(count = 30) {
+        const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#9b59b6', '#ff9f70'];
+        
+        for (let i = 0; i < count; i++) {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = '50%';
+          confetti.style.top = '50%';
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.setProperty('--x', (Math.random() - 0.5) * 500 + 'px');
+          confetti.style.setProperty('--y', (Math.random() - 0.5) * 500 + 'px');
+          confetti.style.setProperty('--r', Math.random() * 720 + 'deg');
+          confettiContainer.appendChild(confetti);
+          
+          setTimeout(() => confetti.remove(), 1000);
+        }
+      }
+
+      // ===== HOLD-TO-CHARGE MECHANIC =====
+      function startCharging() {
+        if (isCharging) return;
+        isCharging = true;
+        chargeLevel = 0;
+        chargeIndicator.classList.add('active');
+        chargeSound = playSound('charge');
+        
+        chargeInterval = setInterval(() => {
+          chargeLevel = Math.min(chargeLevel + 2, 100);
+          chargeFill.style.width = chargeLevel + '%';
+          chargeText.textContent = chargeLevel + '%';
+          
+          if (chargeLevel >= 100) {
+            releaseCharge(true);
+          }
+        }, 40);
+      }
+
+      function releaseCharge(maxCharge = false) {
+        if (!isCharging) return;
+        isCharging = false;
+        clearInterval(chargeInterval);
+        
+        if (chargeSound) {
+          chargeSound.oscillator.stop();
+          chargeSound.gainNode.disconnect();
+        }
+        
+        chargeIndicator.classList.remove('active');
+        
+        if (chargeLevel > 20) {
+          // Trigger based on charge level
+          const intensity = chargeLevel / 100;
+          createConfetti(Math.floor(intensity * 50));
+          
+          if (maxCharge) {
+            showAchievement('MAXIMUM POWER! ⚡', '💥');
+            container.classList.add('super-charged');
+            setTimeout(() => container.classList.remove('super-charged'), 1000);
+          }
+        }
+        
+        chargeLevel = 0;
+        chargeFill.style.width = '0%';
+        chargeText.textContent = '0%';
+      }
+
+      // ===== MAGNETIC CURSOR EFFECT =====
+      let magneticStrength = 0.15;
+      
+      function handleMagneticEffect(e) {
+        const rect = mainButton.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const deltaX = e.clientX - centerX;
+        const deltaY = e.clientY - centerY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        if (distance < 200) {
+          const pull = (200 - distance) / 200 * magneticStrength;
+          const moveX = deltaX * pull;
+          const moveY = deltaY * pull;
+          
+          mainButton.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+        } else {
+          mainButton.style.transform = '';
+        }
+      }
+
+      // ===== CURSOR TRAIL =====
+      const trailContainer = document.getElementById('cursorTrail');
+      const trailParticles = [];
+      const maxTrailParticles = 20;
+
+      function createTrailParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.className = 'trail-particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        trailContainer.appendChild(particle);
+        
+        trailParticles.push({
+          element: particle,
+          life: 1
+        });
+        
+        if (trailParticles.length > maxTrailParticles) {
+          const oldest = trailParticles.shift();
+          oldest.element.remove();
+        }
+      }
+
+      function updateTrailParticles() {
+        trailParticles.forEach((p, i) => {
+          p.life -= 0.05;
+          p.element.style.opacity = p.life;
+          p.element.style.transform = `scale(${p.life})`;
+          
+          if (p.life <= 0) {
+            p.element.remove();
+            trailParticles.splice(i, 1);
+          }
+        });
+        requestAnimationFrame(updateTrailParticles);
+      }
+      updateTrailParticles();
+
+      // ===== MATRIX RAIN BACKGROUND =====
+      const ctx = matrixCanvas.getContext('2d');
+      matrixCanvas.width = window.innerWidth;
+      matrixCanvas.height = window.innerHeight;
+      
+      const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+      const fontSize = 14;
+      const columns = matrixCanvas.width / fontSize;
+      const drops = Array(Math.floor(columns)).fill(1);
+      let matrixEnabled = false;
+
+      function drawMatrix() {
+        if (!matrixEnabled) return;
+        
+        ctx.fillStyle = 'rgba(13, 16, 14, 0.05)';
+        ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+        
+        ctx.fillStyle = '#0f0';
+        ctx.font = fontSize + 'px monospace';
+        
+        for (let i = 0; i < drops.length; i++) {
+          const text = chars[Math.floor(Math.random() * chars.length)];
+          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+          
+          if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+        
+        requestAnimationFrame(drawMatrix);
+      }
+
+      // ===== DARK/LIGHT MODE =====
+      const modeToggle = document.getElementById('modeToggle');
+      const modeIcon = document.querySelector('.mode-icon');
+      let isDarkMode = true;
+
+      modeToggle.addEventListener('click', () => {
+        isDarkMode = !isDarkMode;
+        document.body.classList.toggle('light-mode', !isDarkMode);
+        modeIcon.textContent = isDarkMode ? '🌙' : '☀️';
+        playSound('click');
+      });
+
+      // ===== CUSTOM COLOR PICKER =====
+      const customThemeBtn = document.getElementById('customThemeBtn');
+      const colorPickerPanel = document.getElementById('colorPickerPanel');
+      const customGlow = document.getElementById('customGlow');
+      const customSpark = document.getElementById('customSpark');
+      const applyCustomColor = document.getElementById('applyCustomColor');
+
+      customThemeBtn.addEventListener('click', () => {
+        colorPickerPanel.classList.toggle('show');
+      });
+
+      applyCustomColor.addEventListener('click', () => {
+        container.style.setProperty('--glow', customGlow.value);
+        container.style.setProperty('--spark-color', customSpark.value);
+        container.style.setProperty('--glow-alt', customGlow.value);
+        colorPickerPanel.classList.remove('show');
+        playSound('click');
+        
+        // Remove other theme classes
+        container.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-rainbow');
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        customThemeBtn.classList.add('active');
+      });
+
+      // ===== KEYBOARD SHORTCUTS =====
+      document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+          case '1': document.querySelector('[data-theme=""]').click(); break;
+          case '2': document.querySelector('[data-theme="theme-blue"]').click(); break;
+          case '3': document.querySelector('[data-theme="theme-green"]').click(); break;
+          case '4': document.querySelector('[data-theme="theme-purple"]').click(); break;
+          case '5': document.querySelector('[data-theme="theme-rainbow"]').click(); break;
+          case '+':
+          case '=':
+            document.querySelector('[data-size="size-large"]').click(); break;
+          case '-':
+            document.querySelector('[data-size="size-small"]').click(); break;
+          case '0':
+            document.querySelector('[data-size=""]').click(); break;
+          case 'm':
+            matrixEnabled = !matrixEnabled;
+            matrixCanvas.classList.toggle('active', matrixEnabled);
+            if (matrixEnabled) drawMatrix();
+            break;
+          case ' ':
+            e.preventDefault();
+            mainButton.click();
+            break;
+        }
+      });
+
+      // ===== EASTER EGGS =====
+      let konamiCode = [];
+      const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+      document.addEventListener('keydown', (e) => {
+        konamiCode.push(e.key);
+        konamiCode = konamiCode.slice(-10);
+        
+        if (konamiCode.join(',') === konamiSequence.join(',')) {
+          showAchievement('KONAMI CODE ACTIVATED! 🎮', '🕹️');
+          container.classList.add('rainbow-mode');
+          createConfetti(100);
+          setTimeout(() => container.classList.remove('rainbow-mode'), 5000);
+        }
+      });
+
+      // Triple click easter egg
+      let clickTimes = [];
+      mainButton.addEventListener('click', () => {
+        const now = Date.now();
+        clickTimes.push(now);
+        clickTimes = clickTimes.filter(t => now - t < 500);
+        
+        if (clickTimes.length >= 5) {
+          showAchievement('SPEED CLICKER! 🏃‍♂️', '⚡');
+          clickTimes = [];
+        }
+      });
+
+      // ===== EVENT LISTENERS =====
+      
+      // Theme picker
+      document.querySelectorAll('.theme-btn:not(#customThemeBtn)').forEach(btn => {
         btn.addEventListener('click', () => {
-          const container = document.getElementById('buttonContainer');
-          // Remove all theme classes
           container.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-rainbow');
-          // Add selected theme
+          container.style.removeProperty('--glow');
+          container.style.removeProperty('--spark-color');
+          container.style.removeProperty('--glow-alt');
+          
           const theme = btn.dataset.theme;
           if (theme) container.classList.add(theme);
-          // Update active state
+          
           document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
+          playSound('click');
         });
       });
 
-      // Size picker functionality
+      // Size picker
       document.querySelectorAll('.size-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          const container = document.getElementById('buttonContainer');
-          // Remove all size classes
           container.classList.remove('size-small', 'size-large');
-          // Add selected size
           const size = btn.dataset.size;
           if (size) container.classList.add(size);
-          // Update active state
+          
           document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
+          playSound('click');
         });
       });
 
-      // Click ripple positioning
-      document.querySelector('.button').addEventListener('click', function(e) {
-        const ripple = this.querySelector('.ripple');
-        const rect = this.getBoundingClientRect();
+      // Main button click
+      mainButton.addEventListener('click', (e) => {
+        // Ripple position
+        const ripple = mainButton.querySelector('.ripple');
+        const rect = mainButton.getBoundingClientRect();
         ripple.style.left = (e.clientX - rect.left) + 'px';
         ripple.style.top = (e.clientY - rect.top) + 'px';
+        
+        toggleButton();
+        incrementCounter();
+        
+        // Hide tooltip on first click
+        if (!localStorage.getItem('visited')) {
+          localStorage.setItem('visited', 'true');
+          tooltip.classList.remove('show');
+          setTimeout(() => tooltip.style.display = 'none', 500);
+        }
       });
+
+      // Hold-to-charge
+      mainButton.addEventListener('mousedown', startCharging);
+      mainButton.addEventListener('touchstart', startCharging);
+      mainButton.addEventListener('mouseup', () => releaseCharge());
+      mainButton.addEventListener('touchend', () => releaseCharge());
+      mainButton.addEventListener('mouseleave', () => releaseCharge());
+
+      // Magnetic cursor
+      document.addEventListener('mousemove', (e) => {
+        handleMagneticEffect(e);
+        createTrailParticle(e.clientX, e.clientY);
+      });
+
+      // Window resize for matrix
+      window.addEventListener('resize', () => {
+        matrixCanvas.width = window.innerWidth;
+        matrixCanvas.height = window.innerHeight;
+      });
+
+      // ===== STARTUP =====
+      console.log('%c⚡ Electric Button v2.0 ⚡', 'font-size: 20px; color: #ff9f70; text-shadow: 0 0 10px #ff9f70;');
+      console.log('%cKeyboard shortcuts: 1-5 (themes), +/- (size), M (matrix), Space (click)', 'color: #888;');
+      console.log('%cTry the Konami Code! ↑↑↓↓←→←→BA', 'color: #4d96ff;');
     </script>
   </body>
 </html>

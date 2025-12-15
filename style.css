@@ -14,6 +14,508 @@ body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial,
     sans-serif;
   overflow: hidden;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* ===== LIGHT MODE ===== */
+body.light-mode {
+  background: #f0f4f8;
+  color: #1a1a2e;
+}
+
+body.light-mode .button-container {
+  --filament: #8b451366;
+}
+
+body.light-mode .theme-picker,
+body.light-mode .size-picker,
+body.light-mode .click-counter,
+body.light-mode .color-picker-panel {
+  background: rgba(255, 255, 255, 0.8);
+  color: #1a1a2e;
+}
+
+body.light-mode .base {
+  background-color: #e0e5ec;
+  box-shadow: inset 0 -5px 10px 0 #00000033, inset 1px -10px 15px 1px #ffffff;
+}
+
+/* ===== MATRIX RAIN BACKGROUND ===== */
+.matrix-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.matrix-bg.active {
+  opacity: 0.3;
+}
+
+/* ===== SCANLINES OVERLAY ===== */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.3;
+}
+
+/* ===== CURSOR TRAIL ===== */
+.cursor-trail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.trail-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--glow, #ff9f70);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px var(--glow, #ff9f70);
+}
+
+/* ===== DARK/LIGHT MODE TOGGLE ===== */
+.mode-toggle {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  z-index: 1000;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.mode-toggle:hover {
+  transform: translateX(-50%) scale(1.1);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+/* ===== CLICK COUNTER ===== */
+.click-counter {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  padding: 15px 30px;
+  border-radius: 30px;
+  text-align: center;
+  z-index: 1000;
+  min-width: 150px;
+}
+
+.counter-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 3px;
+  opacity: 0.7;
+  margin-bottom: 5px;
+}
+
+.counter-value {
+  display: block;
+  font-size: 32px;
+  font-weight: bold;
+  background: linear-gradient(135deg, var(--glow, #ff9f70), var(--spark-color, #ffdd88));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: transform 0.2s ease;
+}
+
+.counter-value.pulse {
+  transform: scale(1.2);
+}
+
+.counter-progress {
+  height: 3px;
+  background: var(--glow, #ff9f70);
+  border-radius: 2px;
+  margin-top: 10px;
+  width: 0%;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px var(--glow, #ff9f70);
+}
+
+/* ===== ACHIEVEMENT POPUP ===== */
+.achievement {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 2px solid var(--glow, #ff9f70);
+  padding: 20px 40px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 0 30px var(--glow, #ff9f70);
+}
+
+.achievement.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.achievement-icon {
+  font-size: 40px;
+  animation: achievementBounce 0.5s ease infinite;
+}
+
+.achievement-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+}
+
+@keyframes achievementBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* ===== TOOLTIP ===== */
+.tooltip {
+  position: fixed;
+  top: calc(50% - 80px);
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s ease;
+  white-space: nowrap;
+}
+
+.tooltip.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  animation: tooltipFloat 2s ease-in-out infinite;
+}
+
+@keyframes tooltipFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* ===== CUSTOM COLOR PICKER ===== */
+.color-picker-panel {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 15px;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.color-picker-panel.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.color-picker-panel label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.color-picker-panel input[type="color"] {
+  width: 40px;
+  height: 30px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.color-picker-panel button {
+  background: var(--glow, #ff9f70);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.color-picker-panel button:hover {
+  transform: scale(1.05);
+}
+
+/* ===== CONFETTI ===== */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9997;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  animation: confettiFall 1s ease-out forwards;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x), var(--y)) rotate(var(--r));
+    opacity: 0;
+  }
+}
+
+/* ===== LENS FLARE ===== */
+.lens-flare {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.lens-flare.active {
+  opacity: 1;
+}
+
+.lens-flare::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    var(--glow, #ff9f70) 20%, 
+    #fff 50%, 
+    var(--glow, #ff9f70) 80%, 
+    transparent
+  );
+  transform: translate(-50%, -50%);
+  filter: blur(2px);
+  animation: lensFlareStreak 2s ease-in-out infinite;
+}
+
+.lens-flare::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  animation: lensFlarePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes lensFlareStreak {
+  0%, 100% { opacity: 0.5; width: 200px; }
+  50% { opacity: 1; width: 350px; }
+}
+
+@keyframes lensFlarePulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+}
+
+/* ===== CHARGE INDICATOR ===== */
+.charge-indicator {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.charge-indicator.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.charge-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--glow, #ff9f70), #fff);
+  border-radius: 10px;
+  transition: width 0.05s linear;
+  box-shadow: 0 0 15px var(--glow, #ff9f70);
+}
+
+.charge-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 5px #000;
+}
+
+/* ===== HEAT DISTORTION ===== */
+.heat-distortion {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  width: 100px;
+  height: 60px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  background: transparent;
+  filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='heat'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='3' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='5' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/svg%3E#heat");
+}
+
+.button-container.is-on .heat-distortion {
+  opacity: 1;
+  animation: heatWave 0.5s ease-in-out infinite;
+}
+
+@keyframes heatWave {
+  0%, 100% { transform: translateX(-50%) scaleY(1); }
+  50% { transform: translateX(-50%) scaleY(1.1); }
+}
+
+/* ===== ON STATE STYLES ===== */
+.button-container.is-on .glow {
+  opacity: 1 !important;
+}
+
+.button-container.is-on .filament-glow path {
+  animation: drawLine 1s ease-in-out forwards !important;
+}
+
+.button-container.is-on .filament-glow stop[offset="0%"],
+.button-container.is-on .filament-glow stop[offset="100%"] {
+  animation: light-on 0.2s forwards !important;
+}
+
+.button-container.is-on .sound-waves {
+  opacity: 1;
+}
+
+.button-container.is-on .wave-bar {
+  animation: waveBar 0.4s ease-in-out infinite;
+}
+
+.button-container.is-on .wave-bar:nth-child(1) { animation-delay: 0s; }
+.button-container.is-on .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.button-container.is-on .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.button-container.is-on .wave-bar:nth-child(4) { animation-delay: 0.15s; }
+.button-container.is-on .wave-bar:nth-child(5) { animation-delay: 0.05s; }
+
+.button-container.is-on .electric-arc {
+  animation: electricZap 0.15s linear infinite;
+}
+
+.button-container.is-on .smoke {
+  animation: smokeRise 2s ease-out infinite;
+}
+
+/* ===== SUPER CHARGED STATE ===== */
+.button-container.super-charged {
+  animation: superCharge 0.5s ease-in-out;
+}
+
+.button-container.super-charged .button {
+  filter: brightness(1.5) saturate(1.5);
+}
+
+@keyframes superCharge {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.05); }
+  50% { transform: scale(0.98); }
+  75% { transform: scale(1.02); }
+}
+
+/* ===== RAINBOW MODE (Easter Egg) ===== */
+.button-container.rainbow-mode {
+  animation: rainbowPulse 0.5s linear infinite;
+}
+
+@keyframes rainbowPulse {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
 }
 
 /* Color Theme Variations */

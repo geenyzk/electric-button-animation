@@ -16,11 +16,6 @@
     <!-- Cursor Trail Container -->
     <div id="cursorTrail" class="cursor-trail"></div>
 
-    <!-- Dark/Light Mode Toggle -->
-    <button class="mode-toggle" id="modeToggle" title="Toggle Dark/Light Mode">
-      <span class="mode-icon">🌙</span>
-    </button>
-
     <!-- Click Counter -->
     <div class="click-counter" id="clickCounter">
       <span class="counter-label">CLICKS</span>
@@ -717,18 +712,6 @@
         
         requestAnimationFrame(drawMatrix);
       }
-
-      // ===== DARK/LIGHT MODE =====
-      const modeToggle = document.getElementById('modeToggle');
-      const modeIcon = document.querySelector('.mode-icon');
-      let isDarkMode = true;
-
-      modeToggle.addEventListener('click', () => {
-        isDarkMode = !isDarkMode;
-        document.body.classList.toggle('light-mode', !isDarkMode);
-        modeIcon.textContent = isDarkMode ? '🌙' : '☀️';
-        playSound('click');
-      });
 
       // ===== CUSTOM COLOR PICKER =====
       const customThemeBtn = document.getElementById('customThemeBtn');
